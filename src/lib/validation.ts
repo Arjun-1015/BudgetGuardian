@@ -30,7 +30,7 @@ export const profileSchema = z.object({
   otherIncome: z.number().nonnegative().optional(),
   salaryAmount: z.number().nonnegative().optional(),
   salaryFrequency: z.enum(["monthly", "biweekly", "weekly"]).optional(),
-  salaryDate: z.number().int().min(1).max(28).optional(),
+  salaryDate: z.number().int().min(1).max(31).optional(),
   profilePhoto: z
     .string()
     .max(700_000, "Image is too large — try a smaller photo")
