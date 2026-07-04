@@ -146,7 +146,7 @@ export default function OnboardingPage() {
                 label="Salary date (day of month)"
                 type="number"
                 min="1"
-                max="28"
+                max="31"
                 value={profile.salaryDate}
                 onChange={updateProfile("salaryDate")}
                 required
