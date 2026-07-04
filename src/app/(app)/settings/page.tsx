@@ -184,15 +184,22 @@ export default function SettingsPage() {
               value={profile.otherIncome}
               onChange={(e) => setProfile((p) => (p ? { ...p, otherIncome: Number(e.target.value) } : p))}
             />
-            <Input
-              label="Salary date (day of month)"
-              type="number"
-              min="1"
-              max="28"
-              value={profile.salaryDate}
-              onChange={(e) => setProfile((p) => (p ? { ...p, salaryDate: Number(e.target.value) } : p))}
-              required
-            />
+            <div>
+              <Input
+                label="Salary date (day of month)"
+                type="number"
+                min="1"
+                max="31"
+                value={profile.salaryDate}
+                onChange={(e) => setProfile((p) => (p ? { ...p, salaryDate: Number(e.target.value) } : p))}
+                required
+              />
+              {profile.salaryDate > 28 && (
+                <p className="mt-1 text-xs text-ink-soft dark:text-mist/50">
+                  In shorter months, this lands on the last day instead (e.g. the 28th/29th in February).
+                </p>
+              )}
+            </div>
           </div>
 
           {error && <p className="text-sm text-danger">{error}</p>}

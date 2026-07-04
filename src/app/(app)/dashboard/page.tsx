@@ -8,6 +8,11 @@ import { SalaryCountdown } from "@/components/dashboard/salary-countdown";
 import { RiskBadge } from "@/components/ui/risk-badge";
 import { CategoryPieChart } from "@/components/dashboard/category-pie-chart";
 
+// Always render fresh — this reads live, per-user financial data directly
+// from the database, so it must never be served from any cache (see the
+// staleTimes note in next.config.js for the bug this prevents).
+export const dynamic = "force-dynamic";
+
 export default async function DashboardPage() {
   const userId = await getSessionUserId();
   if (!userId) redirect("/login");

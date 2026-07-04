@@ -3,6 +3,11 @@ import { getSessionUserId } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { AdminDashboard } from "@/components/admin-dashboard";
 
+// Force fresh rendering on every request — this page's authorization
+// check reads the current session's admin status directly from the
+// database and must never be served from a cache.
+export const dynamic = "force-dynamic";
+
 export default async function AdminPage() {
   const userId = await getSessionUserId();
   if (!userId) redirect("/login");

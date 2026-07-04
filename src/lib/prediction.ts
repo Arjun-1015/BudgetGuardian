@@ -6,7 +6,9 @@ export interface PredictionInput {
   totalIncomeThisCycle: number;
   /** Sum of expenses logged since the current cycle started. */
   totalExpensesThisCycle: number;
-  /** Day-of-month the next salary lands (1-28 to stay safe across months). */
+  /** Day-of-month the next salary lands (1-31). Months shorter than this
+   * clamp to their actual last day — e.g. 31 lands on Feb 28/29, Apr 30,
+   * May 31, and so on, same way most real payroll systems handle it. */
   salaryDate: number;
   /** "Today", injectable for tests. */
   today?: Date;
@@ -26,17 +28,33 @@ export interface PredictionResult {
   message: string;
 }
 
+function daysInMonth(year: number, month: number): number {
+  // Passing month=12 (or -1, etc.) is intentional and safe — Date
+  // normalizes month overflow/underflow correctly (unlike day-of-month
+  // overflow, which is the actual bug being avoided here).
+  return new Date(year, month + 1, 0).getDate();
+}
+
+/** Builds a date for (year, month, day), clamping day down to that
+ * month's actual last day if it doesn't have that many days — e.g.
+ * (2026, 1, 31) for February becomes Feb 28, not a rolled-over March date. */
+function clampedMonthDate(year: number, month: number, day: number): Date {
+  const clampedDay = Math.min(day, daysInMonth(year, month));
+  const d = new Date(year, month, clampedDay);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
 /** Finds the next occurrence of `salaryDate` (day-of-month) on or after
  * `today`. If today's day-of-month has already passed the salary day,
  * rolls to next month. */
 export function getNextSalaryDate(salaryDate: number, today: Date): Date {
-  const day = Math.min(Math.max(salaryDate, 1), 28);
-  const candidate = new Date(today.getFullYear(), today.getMonth(), day);
-  candidate.setHours(0, 0, 0, 0);
+  const day = Math.min(Math.max(salaryDate, 1), 31);
+  const candidate = clampedMonthDate(today.getFullYear(), today.getMonth(), day);
   const todayMidnight = new Date(today);
   todayMidnight.setHours(0, 0, 0, 0);
   if (candidate.getTime() <= todayMidnight.getTime()) {
-    candidate.setMonth(candidate.getMonth() + 1);
+    return clampedMonthDate(today.getFullYear(), today.getMonth() + 1, day);
   }
   return candidate;
 }
@@ -45,9 +63,8 @@ export function getNextSalaryDate(salaryDate: number, today: Date): Date {
  * salary date on or before today. */
 export function getCurrentCycleStart(salaryDate: number, today: Date): Date {
   const next = getNextSalaryDate(salaryDate, today);
-  const start = new Date(next);
-  start.setMonth(start.getMonth() - 1);
-  return start;
+  const day = Math.min(Math.max(salaryDate, 1), 31);
+  return clampedMonthDate(next.getFullYear(), next.getMonth() - 1, day);
 }
 
 function daysBetween(a: Date, b: Date): number {

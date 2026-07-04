@@ -12,6 +12,22 @@
   :focus-visible {
     @apply outline outline-2 outline-offset-2 outline-brand;
   }
+
+  /* The dropdown *popup* list of a native <select> is rendered by the
+     browser in its own layer and does not reliably inherit color from
+     the <select> element the way normal DOM content does — so without
+     this, every <option> across the app fell back to browser-default
+     styling (usually dark text on a white popup) no matter what theme
+     classes were on the select itself. In dark mode that meant light
+     text (inherited on some browsers) landing on that default white
+     background: invisible. Setting both color and background explicitly
+     on <option> fixes it consistently everywhere a <select> is used. */
+  select option {
+    @apply bg-white text-ink;
+  }
+  .dark select option {
+    @apply bg-charcoal-soft text-mist;
+  }
 }
 
 @layer components {

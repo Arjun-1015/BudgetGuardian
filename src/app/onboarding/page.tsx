@@ -151,6 +151,11 @@ export default function OnboardingPage() {
                 onChange={updateProfile("salaryDate")}
                 required
               />
+              {Number(profile.salaryDate) > 28 && (
+                <p className="-mt-2 text-xs text-ink-soft dark:text-mist/50">
+                  In shorter months, this lands on the last day instead (e.g. the 28th/29th in February).
+                </p>
+              )}
               {error && <p className="text-sm text-danger">{error}</p>}
               <Button className="mt-2" onClick={() => setStep("dependents")}>
                 Continue

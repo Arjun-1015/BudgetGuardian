@@ -3,6 +3,7 @@ export class ApiError extends Error {}
 export async function apiFetch<T = unknown>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, {
     ...init,
+    cache: "no-store",
     headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
   });
   const data = await res.json().catch(() => ({}));
