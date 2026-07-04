@@ -1,0 +1,27 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: budgetguardian
+      POSTGRES_PASSWORD: budgetguardian
+      POSTGRES_DB: budgetguardian
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      - db
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: "postgresql://budgetguardian:budgetguardian@db:5432/budgetguardian"
+      AUTH_SECRET: "change-me-to-a-random-string"
+      NEXT_PUBLIC_APP_URL: "http://localhost:3000"
+
+volumes:
+  db_data:

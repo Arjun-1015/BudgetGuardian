@@ -1,0 +1,124 @@
+// BudgetGuardian — Phase 1 schema.
+// Uses SQLite for local dev. For production, change provider to
+// "postgresql" and point DATABASE_URL at Neon/Supabase — the models
+// below are already Postgres-compatible.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  name          String
+  username      String   @unique
+  email         String   @unique
+  passwordHash  String
+  currency      String   @default("INR")
+  occupation    String?
+  profilePhoto  String?  // compressed base64 data URL, kept small client-side before upload
+
+  monthlyIncome Float    @default(0)
+  otherIncome   Float    @default(0)
+  salaryAmount  Float    @default(0)
+  salaryFrequency String @default("monthly") // monthly | biweekly | weekly
+  salaryDate    Int      @default(1) // day-of-month the salary lands
+
+  onboardedAt   DateTime?
+  isAdmin       Boolean  @default(false)
+  isSuspended   Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  dependents    Dependent[]
+  expenses      Expense[]
+  incomeEntries IncomeEntry[]
+  goals         Goal[]
+  bills         Bill[]
+}
+
+model Dependent {
+  id             String  @id @default(cuid())
+  userId         String
+  user           User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name           String
+  relation       String
+  age            Int?
+  monthlyExpense Float   @default(0)
+  priorityLevel  String  @default("medium") // low | medium | high
+  medicalNeeds   Boolean @default(false)
+  createdAt      DateTime @default(now())
+}
+
+model IncomeEntry {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  source    String   // salary | freelance | business | rental | interest | bonus | refund | other
+  amount    Float
+  date      DateTime
+  notes     String?
+  createdAt DateTime @default(now())
+}
+
+model Expense {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount        Float
+  category      String
+  date          DateTime
+  notes         String?
+  paymentMethod String   @default("card") // cash | card | upi | bank_transfer | other
+  isRecurring   Boolean  @default(false)
+  createdAt     DateTime @default(now())
+}
+
+model Goal {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name          String
+  targetAmount  Float
+  currentAmount Float    @default(0)
+  targetDate    DateTime?
+  createdAt     DateTime @default(now())
+}
+
+model Bill {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  category    String
+  amount      Float
+  dueDate     DateTime
+  isPaid      Boolean  @default(false)
+  isRecurring Boolean  @default(true)
+  createdAt   DateTime @default(now())
+}
+
+model Announcement {
+  id            String   @id @default(cuid())
+  title         String
+  message       String
+  isActive      Boolean  @default(true)
+  createdBy     String   // admin user id — denormalized, no formal relation needed for a broadcast log
+  createdByName String
+  createdAt     DateTime @default(now())
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  adminId    String
+  adminName  String
+  action     String   // e.g. "user.suspend", "announcement.create"
+  targetType String?  // e.g. "user", "announcement"
+  targetId   String?
+  details    String?
+  createdAt  DateTime @default(now())
+}
